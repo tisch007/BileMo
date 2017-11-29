@@ -75,9 +75,9 @@ fos_rest:
     serializer:
         serialize_null: true
     body_converter:
-        enabled: true
-        validate: true
-        validation_errors_argument: violations
+            enabled: true
+            validate: true
+            validation_errors_argument: violations
     format_listener:
         rules:
             - { path: '^/', priorities: ['json'], fallback_format: 'json' }
