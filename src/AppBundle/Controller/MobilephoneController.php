@@ -19,7 +19,7 @@ class MobilephoneController extends FOSRestController
 {
     /**
      * @Rest\Get(
-     *     path = "/mobilephones",
+     *     path = "/api/mobilephones",
      *     name = "app_mobilephones_list"
      * )
      * @Rest\QueryParam(
@@ -60,7 +60,7 @@ class MobilephoneController extends FOSRestController
 
     /**
      * @Rest\Get(
-     *     path = "/mobilephones/{id}",
+     *     path = "/api/mobilephones/{id}",
      *     name = "app_mobilephone_show",
      *     requirements = {"id"="\d+"}
      * )
