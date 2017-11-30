@@ -7,6 +7,7 @@ use AppBundle\Entity\Mobilephone;
 use FOS\RestBundle\Controller\Annotations as Rest;
 use FOS\RestBundle\Controller\FOSRestController;
 use FOS\RestBundle\Request\ParamFetcherInterface;
+use FOS\RestBundle\View\View;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
 use Nelmio\ApiDocBundle\Annotation as Doc;
 use AppBundle\Representation\Mobilephones;
@@ -78,8 +79,13 @@ class MobilephoneController extends FOSRestController
      *     }
      * )
      */
-    public function ShowAction(Mobilephone $mobilephone)
+    public function ShowAction($id)
     {
+        $mobilephone = $this->getDoctrine()->getManager()->getRepository('AppBundle:Mobilephone')->find($id);
+        if(empty($mobilephone)){
+            return View::create(['message' => 'Mobilephone not found'], Response::HTTP_NOT_FOUND);
+        }
+
         return $mobilephone;
     }
 
@@ -91,6 +97,8 @@ class MobilephoneController extends FOSRestController
      * @Rest\View(StatusCode=201)
      * @ParamConverter("mobilephone", converter="fos_rest.request_body")
      */
+
+    /*
     public function createAction(Mobilephone $mobilephone, ConstraintViolationList $violations)
     {
         if (count($violations)) {
@@ -104,4 +112,5 @@ class MobilephoneController extends FOSRestController
 
         return $mobilephone;
     }
+    */
 }
