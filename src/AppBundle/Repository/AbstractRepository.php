@@ -19,9 +19,9 @@ abstract class AbstractRepository extends EntityRepository
 
         $pager = new Pagerfanta(new DoctrineORMAdapter($qb));
 
-        $pager->setCurrentPage((int)$page);
         $pager->setMaxPerPage((int) $limit);
-
+        $pager->setCurrentPage((int)$page);
+        
         return $pager;
     }
 }

@@ -5,11 +5,36 @@ namespace AppBundle\Entity;
 use FOS\UserBundle\Model\User as BaseUser;
 use Doctrine\ORM\Mapping as ORM;
 use Hateoas\Configuration\Annotation as Hateoas;
+use JMS\Serializer\Annotation as Serializer;
 
 /**
  * @ORM\Entity
  * @ORM\Table(name="users")
- * @Hateoas\Relation("self", href = "expr('/users/' ~ object.getId())")
+ * @Serializer\ExclusionPolicy("all")
+ *
+ * @Hateoas\Relation(
+ *      "client_list",
+ *      href = @Hateoas\Route(
+ *          "app_client_list",
+ *          absolute = true
+ *      )
+ * )
+ * @Hateoas\Relation(
+ *     "self",
+ *     href = @Hateoas\Route(
+ *          "app_client_show",
+ *          parameters = { "id" = "expr(object.getId())" },
+ *          absolute = true
+ *     )
+ * )
+ *@Hateoas\Relation(
+ *     "delete",
+ *     href = @Hateoas\Route(
+ *          "app_client_delete",
+ *          parameters = { "id" = "expr(object.getId())" },
+ *          absolute = true
+ *     )
+ * )
  */
 class User extends BaseUser
 {

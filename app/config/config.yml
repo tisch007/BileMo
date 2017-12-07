@@ -91,6 +91,8 @@ fos_oauth_server:
     access_token_class:  AppBundle\Entity\AccessToken
     refresh_token_class: AppBundle\Entity\RefreshToken
     auth_code_class:     AppBundle\Entity\AuthCode
+    service:
+        user_provider: fos_user.user_provider.username
 
 fos_user:
     db_driver: orm
@@ -99,4 +101,11 @@ fos_user:
     from_email:
         address: "tisch@gmail.com"
         sender_name: "tisch"
+
+jms_serializer:
+    metadata:
+        directories:
+            FOSUB:
+                namespace_prefix: "FOS\\UserBundle"
+                path: "%kernel.root_dir%/Resources/serializer/FOS"
 

@@ -39,7 +39,6 @@ class Mobilephone
      * @ORM\Id
      * @ORM\GeneratedValue(strategy="AUTO")
      *
-     * @Serializer\Expose
      */
     private $id;
 
