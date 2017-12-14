@@ -2,31 +2,22 @@
 
 namespace AppBundle\Controller;
 
-
-use AppBundle\Entity\Mobilephone;
 use FOS\RestBundle\Controller\Annotations as Rest;
 use FOS\RestBundle\Controller\FOSRestController;
 use FOS\RestBundle\Request\ParamFetcherInterface;
 use FOS\RestBundle\View\View;
+use JMS\Serializer\SerializationContext;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
 use Nelmio\ApiDocBundle\Annotation as Doc;
-use AppBundle\Representation\Mobilephones;
-
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Validator\ConstraintViolationList;
 
 class MobilephoneController extends FOSRestController
 {
     /**
      * @Rest\Get(
-     *     path = "/mobilephones",
+     *     path = "/api/mobilephones",
      *     name = "app_mobilephones_list"
-     * )
-     * @Rest\QueryParam(
-     *     name="order",
-     *     requirements="asc|desc",
-     *     default="asc",
-     *     description="Sort order (asc or desc)"
      * )
      * @Rest\QueryParam(
      *     name="limit",
@@ -44,23 +35,43 @@ class MobilephoneController extends FOSRestController
      * @Doc\ApiDoc(
      *     section="Mobilephone",
      *     resource=true,
-     *     description="Get the list of all articles."
+     *     description="Get the list of all articles.",
+     *     output={
+     *         "class"="AppBundle\Entity\Mobilephone",
+     *         "parsers"={"Nelmio\ApiDocBundle\Parser\JmsMetadataParser"}
+     *     },
      * )
      */
-    public function ShowListAction(ParamFetcherInterface $paramFetcher)
+    public function showListAction(ParamFetcherInterface $paramFetcher, Request $request)
     {
-        $pager = $this->getDoctrine()->getRepository('AppBundle:Mobilephone')->search(
-            $paramFetcher->get('order'),
-            $paramFetcher->get('limit'),
-            $paramFetcher->get('page')
-        );
+        $limit = $paramFetcher->get('limit');
+        $page = $paramFetcher->get('page');
 
-        return new Mobilephones($pager);
+        $em = $this->getDoctrine()->getManager();
+        $mobile_list = $em->getRepository("AppBundle:Mobilephone")->findAll();
+
+        $pager = $this->get('knp_paginator');
+        $pagination = $pager->paginate($mobile_list,$request->query->getInt('page',$page), $request->query->getInt('limit', $limit));
+
+        $serializer = $this->get('jms_serializer');
+        $result = array(
+            'data' => $pagination->getItems(),
+            'meta' => $pagination->getPaginationData());
+
+        return new Response(
+            $serializer->serialize(
+                $result,
+                'json',
+                SerializationContext::create()->setGroups(['Default'])
+            ),
+            Response::HTTP_OK,
+            ['Content-Type' => 'application/json',]
+        );
     }
 
     /**
      * @Rest\Get(
-     *     path = "/mobilephones/{id}",
+     *     path = "/api/mobilephones/{id}",
      *     name = "app_mobilephone_show",
      *     requirements = {"id"="\d+"}
      * )
@@ -70,19 +81,23 @@ class MobilephoneController extends FOSRestController
      *     resource=true,
      *     description="Get one article.",
      *     requirements={
-     *         {
-     *             "name"="id",
-     *             "dataType"="integer",
-     *             "requirements"="\d+",
-     *             "description"="The article unique identifier."
-     *         }
-     *     }
+     *     {
+     *              "name"="id",
+     *              "dataType"="integer",
+     *              "requirement"="\d+",
+     *              "description"="The mobilephone unique identifier"
+     *          }
+     *     },
+     *     output={
+     *         "class"="AppBundle\Entity\Mobilephone",
+     *         "parsers"={"Nelmio\ApiDocBundle\Parser\JmsMetadataParser"}
+     *     },
      * )
      */
-    public function ShowAction($id)
+    public function showAction($id)
     {
         $mobilephone = $this->getDoctrine()->getManager()->getRepository('AppBundle:Mobilephone')->find($id);
-        if(empty($mobilephone)){
+        if (empty($mobilephone)) {
             return View::create(['message' => 'Mobilephone not found'], Response::HTTP_NOT_FOUND);
         }
 
