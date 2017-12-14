@@ -4,31 +4,14 @@ namespace AppBundle\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
 use JMS\Serializer\Annotation as Serializer;
-use Hateoas\Configuration\Annotation as Hateoas;
+
 /**
  * Mobilephone
  *
- * @ORM\Table(name="Mobilephone")
+ * @ORM\Table(name="mobilephone")
  * @ORM\Entity(repositoryClass="AppBundle\Repository\MobilephoneRepository")
  *
  * @Serializer\ExclusionPolicy("all")
- *
- *
- * @Hateoas\Relation(
- *      "self",
- *      href = @Hateoas\Route(
- *          "app_mobilephone_show",
- *          parameters = { "id" = "expr(object.getId())" },
- *          absolute = true
- *      )
- * )
- *@Hateoas\Relation(
- *      "mobilephone_list",
- *      href = @Hateoas\Route(
- *          "app_mobilephones_list",
- *          absolute = true
- *      )
- * )
  */
 class Mobilephone
 {
@@ -39,6 +22,7 @@ class Mobilephone
      * @ORM\Id
      * @ORM\GeneratedValue(strategy="AUTO")
      *
+     * @Serializer\Expose
      */
     private $id;
 
@@ -55,7 +39,6 @@ class Mobilephone
      * @var string
      *
      * @ORM\Column(name="model", type="string", length=50)
-     *
      *
      * @Serializer\Expose
      */
@@ -251,3 +234,4 @@ class Mobilephone
         return $this->price;
     }
 }
+
