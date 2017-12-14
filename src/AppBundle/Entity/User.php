@@ -27,14 +27,6 @@ use JMS\Serializer\Annotation as Serializer;
  *          absolute = true
  *     )
  * )
- *@Hateoas\Relation(
- *     "delete",
- *     href = @Hateoas\Route(
- *          "app_client_delete",
- *          parameters = { "id" = "expr(object.getId())" },
- *          absolute = true
- *     )
- * )
  */
 class User extends BaseUser
 {

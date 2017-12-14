@@ -6,10 +6,10 @@ use FOS\RestBundle\Controller\Annotations as Rest;
 use FOS\RestBundle\Controller\FOSRestController;
 use FOS\RestBundle\Request\ParamFetcherInterface;
 use FOS\RestBundle\View\View;
+use JMS\Serializer\SerializationContext;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
 use Nelmio\ApiDocBundle\Annotation as Doc;
-use AppBundle\Representation\Mobilephones;
-
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 class MobilephoneController extends FOSRestController
@@ -18,12 +18,6 @@ class MobilephoneController extends FOSRestController
      * @Rest\Get(
      *     path = "/api/mobilephones",
      *     name = "app_mobilephones_list"
-     * )
-     * @Rest\QueryParam(
-     *     name="order",
-     *     requirements="asc|desc",
-     *     default="asc",
-     *     description="Sort order (asc or desc)"
      * )
      * @Rest\QueryParam(
      *     name="limit",
@@ -48,15 +42,31 @@ class MobilephoneController extends FOSRestController
      *     },
      * )
      */
-    public function ShowListAction(ParamFetcherInterface $paramFetcher)
+    public function showListAction(ParamFetcherInterface $paramFetcher, Request $request)
     {
-        $pager = $this->getDoctrine()->getRepository('AppBundle:Mobilephone')->search(
-            $paramFetcher->get('order'),
-            $paramFetcher->get('limit'),
-            $paramFetcher->get('page')
-        );
+        $limit = $paramFetcher->get('limit');
+        $page = $paramFetcher->get('page');
 
-        return new Mobilephones($pager);
+        $em = $this->getDoctrine()->getManager();
+        $mobile_list = $em->getRepository("AppBundle:Mobilephone")->findAll();
+
+        $pager = $this->get('knp_paginator');
+        $pagination = $pager->paginate($mobile_list,$request->query->getInt('page',$page), $request->query->getInt('limit', $limit));
+
+        $serializer = $this->get('jms_serializer');
+        $result = array(
+            'data' => $pagination->getItems(),
+            'meta' => $pagination->getPaginationData());
+
+        return new Response(
+            $serializer->serialize(
+                $result,
+                'json',
+                SerializationContext::create()->setGroups(['Default'])
+            ),
+            Response::HTTP_OK,
+            ['Content-Type' => 'application/json',]
+        );
     }
 
     /**
@@ -84,7 +94,7 @@ class MobilephoneController extends FOSRestController
      *     },
      * )
      */
-    public function ShowAction($id)
+    public function showAction($id)
     {
         $mobilephone = $this->getDoctrine()->getManager()->getRepository('AppBundle:Mobilephone')->find($id);
         if (empty($mobilephone)) {

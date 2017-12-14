@@ -2,6 +2,7 @@
 
 namespace AppBundle\Controller;
 
+use FOS\RestBundle\Request\ParamFetcherInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -9,6 +10,7 @@ use FOS\RestBundle\Controller\Annotations as Rest;
 use Symfony\Component\HttpFoundation\Request;
 use FOS\RestBundle\View\View;
 use Nelmio\ApiDocBundle\Annotation\ApiDoc;
+use JMS\Serializer\SerializationContext;
 
 class UserController extends Controller
 {
@@ -16,6 +18,18 @@ class UserController extends Controller
      *@Rest\Get(
      *     path = "/api/clients",
      *     name = "app_client_list"
+     * )
+     * @Rest\QueryParam(
+     *     name="limit",
+     *     requirements="\d+",
+     *     default="20",
+     *     description="Max number of movies per page."
+     * )
+     * @Rest\QueryParam(
+     *     name="page",
+     *     requirements="\d+",
+     *     default="1",
+     *     description="The pagination offset"
      * )
      * @ApiDoc(
      *     description="Get the list of all users.",
@@ -28,9 +42,30 @@ class UserController extends Controller
      * )
      * @Rest\View
      */
-    public function getUsersAction(){
+    public function showListAction(ParamFetcherInterface $paramFetcher, Request $request)
+    {
+        $limit = $paramFetcher->get('limit');
+        $page = $paramFetcher->get('page');
+
         $users = $this->getDoctrine()->getManager()->getRepository('AppBundle:User')->findAll();
-//pagination a mettre en place
+
+        $pager = $this->get('knp_paginator');
+        $pagination = $pager->paginate($users,$request->query->getInt('page',$page), $request->query->getInt('limit', $limit));
+
+        $serializer = $this->get('jms_serializer');
+        $result = array(
+            'data' => $pagination->getItems(),
+            'meta' => $pagination->getPaginationData());
+
+        return new Response(
+            $serializer->serialize(
+                $result,
+                'json',
+                SerializationContext::create()->setGroups(['Default'])
+            ),
+            Response::HTTP_OK,
+            ['Content-Type' => 'application/json',]
+        );
         return $users;
     }
 
@@ -59,7 +94,7 @@ class UserController extends Controller
      * )
      * @Rest\View
      */
-    public function getUserAction($id){
+    public function showAction($id){
         $user = $this->getDoctrine()->getManager()->getRepository('AppBundle:User')->find($id);
 
         if(empty($user)){
@@ -118,47 +153,6 @@ class UserController extends Controller
 
         $response = new JsonResponse();
         $response->setData("User: ".$user->getUsername()." was created");
-        return $response;
-    }
-
-    /**
-     *@Rest\Get(
-     *     path = "/api/clients/delete/{id}",
-     *     name = "app_client_delete",
-     *     requirements = {"id"="\d+"}
-     * )
-     * @ApiDoc(
-     *     description="Delete one user.",
-     *     section="User",
-     *     resource=true,
-     *     requirements={
-     *          {
-     *              "name"="id",
-     *              "dataType"="integer",
-     *              "requirement"="\d+",
-     *              "description"="The user unique identifier"
-     *          }
-     *     },
-     *     output={
-     *         "class"="AppBundle\Entity\User",
-     *         "parsers"={"Nelmio\ApiDocBundle\Parser\JmsMetadataParser"}
-     *     },
-     * )
-     * @Rest\View
-     */
-    public function deleteUsersAction($id)
-    {
-        $user = $this->getDoctrine()->getManager()->getRepository('AppBundle:User')->find($id);
-
-        if(empty($user)){
-            return View::create(['message' => 'User not found'], Response::HTTP_NOT_FOUND);
-        }
-
-        $em = $this->getDoctrine()->getManager();
-        $em->remove($user);
-        $em->flush();
-        $response = new JsonResponse();
-        $response->setData("User with id " . $id . " was deleted");
         return $response;
     }
 }
