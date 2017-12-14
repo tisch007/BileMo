@@ -2,6 +2,7 @@
 
 namespace AppBundle\Controller;
 
+use FOS\RestBundle\Request\ParamFetcherInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -9,66 +10,10 @@ use FOS\RestBundle\Controller\Annotations as Rest;
 use Symfony\Component\HttpFoundation\Request;
 use FOS\RestBundle\View\View;
 use Nelmio\ApiDocBundle\Annotation\ApiDoc;
+use JMS\Serializer\SerializationContext;
 
 class UserController extends Controller
 {
-    /**
-     *@Rest\Get(
-     *     path = "/api/clients",
-     *     name = "app_client_list"
-     * )
-     * @ApiDoc(
-     *     description="Get the list of all users.",
-     *     section="User",
-     *     resource=true,
-     *     output={
-     *         "class"="AppBundle\Entity\User",
-     *         "parsers"={"Nelmio\ApiDocBundle\Parser\JmsMetadataParser"}
-     *     },
-     * )
-     * @Rest\View
-     */
-    public function getUsersAction(){
-        $users = $this->getDoctrine()->getManager()->getRepository('AppBundle:User')->findAll();
-//pagination a mettre en place
-        return $users;
-    }
-
-    /**
-     *@Rest\Get(
-     *     path = "/api/clients/{id}",
-     *     name = "app_client_show",
-     *     requirements = {"id"="\d+"}
-     * )
-     * @ApiDoc(
-     *     description="Get one user.",
-     *     section="User",
-     *     resource=true,
-     *     requirements={
-     *          {
-     *              "name"="id",
-     *              "dataType"="integer",
-     *              "requirement"="\d+",
-     *              "description"="The user unique identifier"
-     *          }
-     *     },
-     *     output={
-     *         "class"="AppBundle\Entity\User",
-     *         "parsers"={"Nelmio\ApiDocBundle\Parser\JmsMetadataParser"}
-     *     },
-     * )
-     * @Rest\View
-     */
-    public function getUserAction($id){
-        $user = $this->getDoctrine()->getManager()->getRepository('AppBundle:User')->find($id);
-
-        if(empty($user)){
-            return View::create(['message' => 'User not found'], Response::HTTP_NOT_FOUND);
-        }
-
-        return $user;
-    }
-
     /**
      * @Rest\Post(
      *    path = "/api/clients",
@@ -118,47 +63,6 @@ class UserController extends Controller
 
         $response = new JsonResponse();
         $response->setData("User: ".$user->getUsername()." was created");
-        return $response;
-    }
-
-    /**
-     *@Rest\Get(
-     *     path = "/api/clients/delete/{id}",
-     *     name = "app_client_delete",
-     *     requirements = {"id"="\d+"}
-     * )
-     * @ApiDoc(
-     *     description="Delete one user.",
-     *     section="User",
-     *     resource=true,
-     *     requirements={
-     *          {
-     *              "name"="id",
-     *              "dataType"="integer",
-     *              "requirement"="\d+",
-     *              "description"="The user unique identifier"
-     *          }
-     *     },
-     *     output={
-     *         "class"="AppBundle\Entity\User",
-     *         "parsers"={"Nelmio\ApiDocBundle\Parser\JmsMetadataParser"}
-     *     },
-     * )
-     * @Rest\View
-     */
-    public function deleteUsersAction($id)
-    {
-        $user = $this->getDoctrine()->getManager()->getRepository('AppBundle:User')->find($id);
-
-        if(empty($user)){
-            return View::create(['message' => 'User not found'], Response::HTTP_NOT_FOUND);
-        }
-
-        $em = $this->getDoctrine()->getManager();
-        $em->remove($user);
-        $em->flush();
-        $response = new JsonResponse();
-        $response->setData("User with id " . $id . " was deleted");
         return $response;
     }
 }
